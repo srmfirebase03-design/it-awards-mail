@@ -26,6 +26,9 @@
             const [sending, setSending] = useState(false);
             const [stats, setStats] = useState({ total: 0, sent: 0, failed: 0 });
             const [statusMap, setStatusMap] = useState({}); // { id: 'pending' | 'sending' | 'success' | 'error' }
+            const [rangeMode, setRangeMode] = useState(false);
+            const [startIndex, setStartIndex] = useState(0);
+            const [endIndex, setEndIndex] = useState(0);
 
             useEffect(() => {
                 fetchNominees();
@@ -78,6 +81,24 @@
                 setSending(false);
             };
 
+            const sendRange = async () => {
+                if (startIndex < 0 || endIndex >= nominees.length || startIndex > endIndex) {
+                    alert('Invalid range! Please check start and end indices.');
+                    return;
+                }
+                const count = endIndex - startIndex + 1;
+                if (!confirm(`Start sending ${count} emails (from position ${startIndex + 1} to ${endIndex + 1})?`)) return;
+                setSending(true);
+                for (let i = startIndex; i <= endIndex; i++) {
+                    const nominee = nominees[i];
+                    if (statusMap[nominee.id] === 'success') continue;
+                    await sendOne(nominee);
+                    // Small delay to avoid rate limiting
+                    await new Promise(r => setTimeout(r, 500));
+                }
+                setSending(false);
+            };
+
             const exportResults = () => {
                 const results = nominees.map(n => ({
                     id: n.id,
@@ -114,7 +135,31 @@
                             <h1 className="text-3xl font-bold text-gray-900">Awards Nomination Mailer</h1>
                             <p className="text-gray-500">Send document requests to all nominees</p>
                         </div>
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap items-end">
+                            {rangeMode && (
+                                <div className="flex gap-2 items-center bg-blue-50 px-4 py-2 rounded-lg border border-blue-200">
+                                    <label className="text-sm font-medium text-gray-700">From:</label>
+                                    <input 
+                                        type="number" 
+                                        min="0" 
+                                        max={nominees.length - 1}
+                                        value={startIndex}
+                                        onChange={(e) => setStartIndex(Math.max(0, parseInt(e.target.value) || 0))}
+                                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    />
+                                    <span className="text-gray-500 text-sm">{nominees[startIndex]?.name}</span>
+                                    <label className="text-sm font-medium text-gray-700 ml-3">To:</label>
+                                    <input 
+                                        type="number" 
+                                        min="0" 
+                                        max={nominees.length - 1}
+                                        value={endIndex}
+                                        onChange={(e) => setEndIndex(Math.min(nominees.length - 1, parseInt(e.target.value) || 0))}
+                                        className="w-16 px-2 py-1 border border-gray-300 rounded text-sm"
+                                    />
+                                    <span className="text-gray-500 text-sm">{nominees[endIndex]?.name}</span>
+                                </div>
+                            )}
                             <button 
                                 onClick={exportResults}
                                 disabled={sending || (stats.sent === 0 && stats.failed === 0)}
@@ -123,11 +168,24 @@
                                 📥 Export Results
                             </button>
                             <button 
-                                onClick={sendAll}
+                                onClick={() => {
+                                    setRangeMode(!rangeMode);
+                                    if (!rangeMode) {
+                                        setStartIndex(0);
+                                        setEndIndex(nominees.length - 1);
+                                    }
+                                }}
+                                disabled={sending || nominees.length === 0}
+                                className={`px-6 py-3 rounded-lg font-bold transition ${sending || nominees.length === 0 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : rangeMode ? 'bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg' : 'bg-gray-500 hover:bg-gray-600 text-white shadow-lg'}`}
+                            >
+                                {rangeMode ? '✓ Range Mode' : 'Select Range'}
+                            </button>
+                            <button 
+                                onClick={rangeMode ? sendRange : sendAll}
                                 disabled={sending}
                                 className={`px-6 py-3 rounded-lg font-bold text-white transition ${sending ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-lg'}`}
                             >
-                                {sending ? 'Sending Emails...' : 'Send All Emails'}
+                                {sending ? 'Sending Emails...' : rangeMode ? `Send Range (${endIndex - startIndex + 1})` : 'Send All Emails'}
                             </button>
                         </div>
                     </header>
@@ -209,6 +267,7 @@
                                     <th className="px-6 py-4">Nominee</th>
                                     <th className="px-6 py-4">Award</th>
                                     <th className="px-6 py-4">Documents</th>
+                                    <th className="px-6 py-4">Form</th>
                                     <th className="px-6 py-4">Submit To</th>
                                     <th className="px-6 py-4">Status</th>
                                     <th className="px-6 py-4">Action</th>
@@ -233,6 +292,27 @@
                                                       </ul>
                                                     : <span className="text-red-500 font-bold italic">No documents mapped</span>}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {n.formLinks && n.formLinks.length > 0 ? (
+                                                <div className="flex flex-col gap-1">
+                                                    {n.formLinks.length === 1 ? (
+                                                        <a 
+                                                            href={n.formLinks[0].url} 
+                                                            target="_blank" 
+                                                            className="text-blue-600 hover:text-blue-800 text-[10px] font-bold underline"
+                                                        >
+                                                            Download Form
+                                                        </a>
+                                                    ) : (
+                                                        <span className="text-[10px] text-purple-600 font-bold">
+                                                            Multiple ({n.formLinks.length})
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <span className="text-[10px] text-red-400 italic">No Form</span>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-wrap gap-1">
