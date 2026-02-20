@@ -18,10 +18,10 @@ app.get('/', (req, res) => {
 // Serve the awards forms for download
 app.use('/forms', express.static(path.join(__dirname, 'awards-form')));
 
-const EXCEL_FILE = 'nomination_data_2026-02-18 (1).xlsx';
-const SCRUTINY_FILE = 'scrutinity_members.json';
-const SUPPORTING_FILE = 'supporting_documents.json';
-const FORM_MAPPING_FILE = 'award_form_mapping.json';
+const EXCEL_FILE = path.join(__dirname, 'nomination_data_2026-02-18 (1).xlsx');
+const SCRUTINY_FILE = path.join(__dirname, 'scrutinity_members.json');
+const SUPPORTING_FILE = path.join(__dirname, 'supporting_documents.json');
+const FORM_MAPPING_FILE = path.join(__dirname, 'award_form_mapping.json');
 
 // Utility to normalize strings for comparison
 const normalize = (str) => str?.toLowerCase().replace(/[^a-z]/g, '') || '';
