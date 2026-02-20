@@ -15,7 +15,33 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Serve the awards forms for download
+// Download endpoint for forms (forces download instead of loading in browser)
+app.get('/api/download-form/:filename', (req, res) => {
+    try {
+        const filename = decodeURIComponent(req.params.filename);
+        const filepath = path.join(__dirname, 'awards-form', filename);
+        
+        // Security check: ensure file is within awards-form directory
+        const normalized = path.normalize(filepath);
+        const allowedPath = path.normalize(path.join(__dirname, 'awards-form'));
+        if (!normalized.startsWith(allowedPath)) {
+            return res.status(403).json({ error: 'Access denied' });
+        }
+        
+        if (!fs.existsSync(filepath)) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+        
+        // Set headers to force download
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.download(filepath);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Serve the awards forms for preview
 app.use('/forms', express.static(path.join(__dirname, 'awards-form')));
 
 const EXCEL_FILE = path.join(__dirname, 'nomination_data_2026-02-18 (1).xlsx');
@@ -119,7 +145,7 @@ function getAwardContext(selectedAward, scrutinyData, supportingData, formMappin
 
     const formFile = formMapping[canonicalAward] || null;
     const baseUrl = req ? `${req.protocol}://${req.get('host')}` : 'http://localhost:3001';
-    const formLink = formFile ? `${baseUrl}/forms/${encodeURIComponent(formFile)}` : null;
+    const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
 
     return {
         scrutinyMembers: scrutinyMembers.size > 0 ? Array.from(scrutinyMembers) : ["Awards Committee"],
@@ -320,7 +346,7 @@ app.post('/api/test-email', async (req, res) => {
     // Map form for test email
     const formFile = formMapping["Best Volunteer/ Organizer/ Team Player Award"];
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const formLink = formFile ? `${baseUrl}/forms/${encodeURIComponent(formFile)}` : null;
+    const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
