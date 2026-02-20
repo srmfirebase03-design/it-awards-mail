@@ -32,9 +32,12 @@ app.get('/api/download-form/:filename', (req, res) => {
             return res.status(404).json({ error: 'File not found' });
         }
         
-        // Set headers to force download
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        // Set headers to force download with RFC 5987 encoded filename
+        // This handles special characters like spaces and parentheses securely
+        const encodedFilename = encodeURIComponent(filename);
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"; filename*=UTF-8''${encodedFilename}`);
         res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Security-Policy', 'default-src \'none\'');
         res.download(filepath);
     } catch (err) {
         res.status(500).json({ error: err.message });
