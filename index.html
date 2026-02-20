@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Awards Mailer Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .status-pill { @apply px-2 py-1 rounded-full text-xs font-semibold; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [nominees, setNominees] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [sending, setSending] = useState(false);
+            const [stats, setStats] = useState({ total: 0, sent: 0, failed: 0 });
+            const [statusMap, setStatusMap] = useState({}); // { id: 'pending' | 'sending' | 'success' | 'error' }
+
+            useEffect(() => {
+                fetchNominees();
+            }, []);
+
+            const fetchNominees = async () => {
+                try {
+                    const res = await fetch(`${window.location.origin}/api/nominees`);
+                    const data = await res.json();
+                    setNominees(data);
+                    setStats(prev => ({ ...prev, total: data.length }));
+                    setLoading(false);
+                } catch (err) {
+                    alert('Failed to fetch nominees');
+                    setLoading(false);
+                }
+            };
+
+            const sendOne = async (nominee) => {
+                setStatusMap(prev => ({ ...prev, [nominee.id]: 'sending' }));
+                try {
+                    const res = await fetch(`${window.location.origin}/api/send-email`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nominee })
+                    });
+                    if (res.ok) {
+                        setStatusMap(prev => ({ ...prev, [nominee.id]: 'success' }));
+                        setStats(prev => ({ ...prev, sent: prev.sent + 1 }));
+                        return true;
+                    } else {
+                        throw new Error('Failed');
+                    }
+                } catch (err) {
+                    setStatusMap(prev => ({ ...prev, [nominee.id]: 'error' }));
+                    setStats(prev => ({ ...prev, failed: prev.failed + 1 }));
+                    return false;
+                }
+            };
+
+            const sendAll = async () => {
+                if (!confirm(`Start sending ${nominees.length} emails?`)) return;
+                setSending(true);
+                for (const nominee of nominees) {
+                    if (statusMap[nominee.id] === 'success') continue;
+                    await sendOne(nominee);
+                    // Small delay to avoid rate limiting
+                    await new Promise(r => setTimeout(r, 500));
+                }
+                setSending(false);
+            };
+
+            if (loading) return <div class="flex h-screen items-center justify-center">Loading...</div>;
+
+            const progress = stats.total > 0 ? ((stats.sent + stats.failed) / stats.total) * 100 : 0;
+
+            return (
+                <div className="max-w-6xl mx-auto p-8">
+                    <header className="mb-8 flex justify-between items-end">
+                        <div>
+                            <h1 className="text-3xl font-bold text-gray-900">Awards Nomination Mailer</h1>
+                            <p className="text-gray-500">Send document requests to all nominees</p>
+                        </div>
+                        <button 
+                            onClick={sendAll}
+                            disabled={sending}
+                            className={`px-6 py-3 rounded-lg font-bold text-white transition ${sending ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-lg'}`}
+                        >
+                            {sending ? 'Sending Emails...' : 'Send All Emails'}
+                        </button>
+                    </header>
+
+                    {/* Stats Dashboard */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <p className="text-sm text-gray-500 mb-1">Total Nominees</p>
+                            <p className="text-2xl font-bold">{stats.total}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <p className="text-sm text-green-500 mb-1">Success</p>
+                            <p className="text-2xl font-bold text-green-600">{stats.sent}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <p className="text-sm text-red-500 mb-1">Failed</p>
+                            <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <p className="text-sm text-blue-500 mb-1">Pending</p>
+                            <p className="text-2xl font-bold text-blue-600">{stats.total - stats.sent - stats.failed}</p>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 mb-8 overflow-hidden">
+                        <div 
+                            className="bg-blue-600 h-2.5 transition-all duration-500" 
+                            style={{ width: `${progress}%` }}
+                        ></div>
+                    </div>
+
+                    {/* Master Mapping Reference */}
+                    <details className="mb-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <summary className="px-6 py-4 font-bold text-gray-700 cursor-pointer hover:bg-gray-50 flex justify-between items-center">
+                            <span>📋 View Master Award Mapping (Docs & Reps)</span>
+                            <span className="text-xs text-gray-400 font-normal italic">Check this if "No documents mapped" appears</span>
+                        </summary>
+                        <div className="px-6 pb-6 overflow-x-auto">
+                            <table className="w-full text-xs text-left">
+                                <thead className="text-gray-500 uppercase font-semibold">
+                                    <tr className="border-b">
+                                        <th className="py-2 pr-4">Award Group</th>
+                                        <th className="py-2 pr-4">Required Documents</th>
+                                        <th className="py-2">Representatives</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                    {nominees.reduce((acc, n) => {
+                                        if (!acc.find(item => item.award === n.award)) {
+                                            acc.push(n);
+                                        }
+                                        return acc;
+                                    }, []).map(ref => (
+                                        <tr key={ref.award} className="hover:bg-gray-50">
+                                            <td className="py-2 pr-4 font-semibold text-gray-800">{ref.award}</td>
+                                            <td className="py-2 pr-4 text-gray-600">
+                                                <ul className="list-disc pl-4">
+                                                    {ref.supportingDocuments.map((d, i) => <li key={i}>{d}</li>)}
+                                                </ul>
+                                            </td>
+                                            <td className="py-2">
+                                                {ref.scrutinyMembers.map(m => (
+                                                    <span key={m} className="inline-block bg-gray-100 px-2 py-0.5 rounded mr-1 mb-1">{m}</span>
+                                                ))}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+
+                    {/* Nominee Table */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-gray-50 border-b border-gray-100 text-gray-600 text-sm uppercase font-semibold">
+                                <tr>
+                                    <th className="px-6 py-4">Nominee</th>
+                                    <th className="px-6 py-4">Award</th>
+                                    <th className="px-6 py-4">Documents</th>
+                                    <th className="px-6 py-4">Submit To</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {nominees.map(n => (
+                                    <tr key={n.id} className="hover:bg-gray-50 transition">
+                                        <td className="px-6 py-4">
+                                            <div className="font-semibold text-gray-900">{n.name}</div>
+                                            <div className="text-xs text-gray-500">{n.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-gray-600">
+                                            {n.award}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-[10px] text-gray-500 max-w-[200px]">
+                                                {n.supportingDocuments.length > 0 
+                                                    ? <ul className="list-disc pl-3">
+                                                        {n.supportingDocuments.slice(0, 2).map((d, i) => <li key={i} className="truncate">{d}</li>)}
+                                                        {n.supportingDocuments.length > 2 && <li>+{n.supportingDocuments.length - 2} more...</li>}
+                                                      </ul>
+                                                    : <span className="text-red-500 font-bold italic">No documents mapped</span>}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-1">
+                                                {n.scrutinyMembers.map(m => (
+                                                    <span key={m} className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded text-[10px] font-medium border border-blue-100">
+                                                        {m}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {statusMap[n.id] === 'success' && <span className="status-pill bg-green-100 text-green-700">Sent</span>}
+                                            {statusMap[n.id] === 'error' && <span className="status-pill bg-red-100 text-red-700">Failed</span>}
+                                            {statusMap[n.id] === 'sending' && <span className="status-pill bg-blue-100 text-blue-700 animate-pulse">Sending...</span>}
+                                            {!statusMap[n.id] && <span className="status-pill bg-gray-100 text-gray-600">Idle</span>}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <button 
+                                                onClick={() => sendOne(n)}
+                                                disabled={statusMap[n.id] === 'success' || sending}
+                                                className="text-blue-600 hover:text-blue-800 text-sm font-semibold disabled:opacity-30"
+                                            >
+                                                Resend
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{
+  "excellency_award_scrutiny_detail": [
+    {
+      "s_no": 1,
+      "award": "Best Academic Performer Award",
+      "scrutiny_members": ["Dr.M.Mohana", "Ms.S.Anusha"]
+    },
+    {
+      "s_no": 2,
+      "award": "Best Coder Award",
+      "scrutiny_members": ["Ms.S.Saranya", "Ms.P.Sivasakthi"]
+    },
+    {
+      "s_no": 3,
+      "award": "Best Researcher Award",
+      "scrutiny_members": ["Dr.G.Maria Kalavathy"]
+    },
+    {
+      "s_no": 4,
+      "award": "Best Continuous Learner Award",
+      "scrutiny_members": ["Mr.K.Ravindran", "Ms.M.Madhumitha"]
+    },
+    {
+      "s_no": 5,
+      "award": "Best Hackathon Contributor Award",
+      "scrutiny_members": ["Dr.M.A.Gunavathie", "Ms.T.Saraswathi"]
+    },
+    {
+      "s_no": 6,
+      "award": "Best Placement Achiever Award (Final year only)",
+      "scrutiny_members": ["Dr. Durai Arumugam S.S.L"]
+    },
+    {
+      "s_no": 7,
+      "award": "Best Volunteer/ Organizer/ Team Player Award",
+      "scrutiny_members": ["Dr.M.Hema", "Ms.K.Sudha"]
+    },
+    {
+      "s_no": 8,
+      "award": "Best Entertainer Award",
+      "scrutiny_members": ["Ms.M.Swathi", "Ms.V.Kumarasundari"]
+    },
+    {
+      "s_no": 9,
+      "award": "Best Entrepreneur Award",
+      "scrutiny_members": ["Dr. Berlin Shaheema", "Ms. V. Kavitha"]
+    },
+    {
+      "s_no": 10,
+      "award": "Best Rising Talent Award (First year only)",
+      "scrutiny_members": ["Ms.T.PDayana Peter", "Ms.S.Suganya"]
+    },
+    {
+      "s_no": 11,
+      "award": "Best Sports Performer Award",
+      "scrutiny_members": ["Ms.K.Santhi", "Ms.G.S.Devilakshmi"]
+    },
+    {
+      "s_no": 12,
+      "award": "Best Project Award",
+      "scrutiny_members": ["Dr.K.Johny Elma", "Ms.S.Shanthana"]
+    },
+    {
+      "s_no": 13,
+      "award": "Best Outgoing Student",
+      "scrutiny_members": ["Dr.K.Sundar", "Dr.S.Sahunthala"]
+    },
+    {
+      "s_no": 14,
+      "award": "Breaking the Barrier Award",
+      "scrutiny_members": ["Dr.S.Gnanapriya", "Dr.Nancy"]
+    },
+    {
+      "s_no": 15,
+      "award": "Social Impact Through Technology Award",
+      "scrutiny_members": ["Dr.S.Praveena", "Dr.Aberna"]
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "Best Academic Performer Award": {
+    "supporting_documents": [
+      "Certificates / Proof of Achievement / Academic Transcripts / Grade Card",
+      "Letters of Recommendation / Faculty Endorsements",
+      "Certificates of Departmental Contribution (Events, Committees) etc"
+    ]
+  },
+  "Best Coder Award": {
+    "supporting_documents": [
+      "Certificates in Coding competitions",
+      "Project Source Code Links (GitHub, GitLab)",
+      "Portfolio of Apps / Software Developed"
+    ]
+  },
+  "Best Continuous Learner Award": {
+    "supporting_documents": [
+      "Certificates",
+      "Skill Assessment Report",
+      "Evidence of Practical Application of Skills",
+      "online certificates (nptel / coursera / udemy)",
+      "global certificates if any",
+      "industry connected certificates."
+    ]
+  },
+  "Best Researcher Award": {
+    "supporting_documents": [
+      "Attach Front Page of the Papers Published",
+      "Project Details / Publications",
+      "patented proof",
+      "proof of concepts documents",
+      "certificates if any."
+    ]
+  },
+  "Best Hackathon Contributor Award": {
+    "supporting_documents": [
+      "Participation Certificates",
+      "Screenshots of Results (Individual Contribution in the Team)",
+      "Mentor Recommendation Letter",
+      "Individual participation certificates"
+    ]
+  },
+  "Best Placement Achiever Award (Final year only)": {
+    "supporting_documents": [
+      "Proof of Achievement – Offer Letter with Salary",
+      "placement coordinator recommendation",
+      "skills demonstrated."
+    ]
+  },
+  "Best Volunteer/ Organizer/ Team Player Award": {
+    "supporting_documents": [
+      "Event Organization Proof",
+      "Photographs / Media Coverage",
+      "Letters of Appreciation from organizers / Faculty",
+      "leadership and teamwork witnessing certificate.",
+      "Recognition Letters / Certificates",
+      "Evidence of Collaboration in Projects or events",
+      "Testimonials from Teammates and Mentors"
+    ]
+  },
+  "Best Entertainer Award": {
+    "supporting_documents": [
+      "Video Clips of Performances",
+      "Certificates / Awards / Recognition",
+      "Media Coverage / Press Mentions",
+      "stage Presence / performance"
+    ]
+  },
+  "Best Entrepreneur Award": {
+    "supporting_documents": [
+      "Company Profile / Registration Proof",
+      "Product / Service Brochure",
+      "Media Mentions or Awards"
+    ]
+  },
+  "Best Rising Talent Award (First year only)": {
+    "supporting_documents": [
+      "Grade Card",
+      "Project or Technical Work Evidence",
+      "Contribution to the Department (Faculty Endorsement)"
+    ]
+  },
+  "Best Sports Performer Award": {
+    "supporting_documents": [
+      "Certificates / Awards / Medals",
+      "Participation Proof / Event Reports",
+      "Media Coverage / Photos",
+      "consistency in sports activities"
+    ]
+  },
+  "Best Project Award": {
+    "supporting_documents": [
+      "Certificates / Proof of Achievement (Related to Project)",
+      "Project Details / Publications (Related to Project)",
+      "Demo Video / Software Link",
+      "Mentor’s Recommendation Letter",
+      "Technology adaption",
+      "Project Outcome / Impact"
+    ]
+  },
+  "Best Outgoing Student": {
+    "supporting_documents": [
+      "initiatives and contribution to the Department.",
+      "Academic performance report",
+      "Leadership roles / awards received",
+      "Participation in co-curricular / extracurricular activities",
+      "Contribution to the department – Endorsed by Faculty",
+      "Faculty Recommendation Letter"
+    ]
+  },
+  "Breaking the Barrier Award": {
+    "supporting_documents": [
+      "Academic Transcripts / Grade Card",
+      "Project Co-Curricular Achievements",
+      "Letters of Recommendation – Faculty",
+      "initiatives to overcome the challenges - writeup / proof"
+    ]
+  },
+  "Social Impact Through Technology Award": {
+    "supporting_documents": [
+      "Product developed for social impact",
+      "Testimonials from users / beneficiaries",
+      "Media Coverage clippings"
+    ]
+  }
+}
