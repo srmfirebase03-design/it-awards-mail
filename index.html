@@ -78,24 +78,58 @@
                 setSending(false);
             };
 
+            const exportResults = () => {
+                const results = nominees.map(n => ({
+                    id: n.id,
+                    name: n.name,
+                    email: n.email,
+                    award: n.award,
+                    status: statusMap[n.id] || 'pending'
+                }));
+
+                const csv = [
+                    ['ID', 'Name', 'Email', 'Award', 'Status'],
+                    ...results.map(r => [r.id, r.name, r.email, r.award, r.status])
+                ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `email-results-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            };
+
             if (loading) return <div class="flex h-screen items-center justify-center">Loading...</div>;
 
             const progress = stats.total > 0 ? ((stats.sent + stats.failed) / stats.total) * 100 : 0;
 
             return (
                 <div className="max-w-6xl mx-auto p-8">
-                    <header className="mb-8 flex justify-between items-end">
+                    <header className="mb-8 flex justify-between items-end gap-4">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900">Awards Nomination Mailer</h1>
                             <p className="text-gray-500">Send document requests to all nominees</p>
                         </div>
-                        <button 
-                            onClick={sendAll}
-                            disabled={sending}
-                            className={`px-6 py-3 rounded-lg font-bold text-white transition ${sending ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-lg'}`}
-                        >
-                            {sending ? 'Sending Emails...' : 'Send All Emails'}
-                        </button>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={exportResults}
+                                disabled={sending || (stats.sent === 0 && stats.failed === 0)}
+                                className={`px-6 py-3 rounded-lg font-bold transition ${sending || (stats.sent === 0 && stats.failed === 0) ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600 text-white shadow-lg'}`}
+                            >
+                                📥 Export Results
+                            </button>
+                            <button 
+                                onClick={sendAll}
+                                disabled={sending}
+                                className={`px-6 py-3 rounded-lg font-bold text-white transition ${sending ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 shadow-lg'}`}
+                            >
+                                {sending ? 'Sending Emails...' : 'Send All Emails'}
+                            </button>
+                        </div>
                     </header>
 
                     {/* Stats Dashboard */}

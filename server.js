@@ -206,7 +206,10 @@ app.post('/api/debug-email', async (req, res) => {
     
     const downloadSection = nominee.formLink 
         ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Download Nomination Form</a>
+            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
+            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+                If the button doesn't work, copy and paste this link: <a href="${nominee.formLink}" style="color: #4f46e5; text-decoration: underline;">${nominee.formLink}</a>
+            </p>
            </div>`
         : '';
 
@@ -265,7 +268,10 @@ app.post('/api/send-email', async (req, res) => {
     
     const downloadSection = nominee.formLink 
         ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Download Nomination Form</a>
+            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
+            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+                If the button doesn't work, copy and paste this link: <a href="${nominee.formLink}" style="color: #4f46e5; text-decoration: underline;">${nominee.formLink}</a>
+            </p>
            </div>`
         : '';
 
@@ -341,7 +347,10 @@ app.post('/api/test-email', async (req, res) => {
     
     const downloadSection = formLink 
         ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Download Nomination Form</a>
+            <a href="${formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
+            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+                If the button doesn't work, copy and paste this link: <a href="${formLink}" style="color: #4f46e5; text-decoration: underline;">${formLink}</a>
+            </p>
            </div>`
         : '';
 
