@@ -128,7 +128,8 @@ function getAwardContext(selectedAward, scrutinyData, supportingData, formMappin
     const docs = getSupportingDocs(selectedAward, supportingData);
     const awardParts = selectedAward.split(',').map(s => normalize(s.trim()));
     let scrutinyMembers = new Set();
-    let canonicalAward = "Awards Selection Committee";
+    let formLinks = []; // Collect all form links
+    let canonicalAwards = []; // Collect all canonical award names
     
     const scrutinyMappings = [
         { keywords: ['sport'], target: 'Best Sports Performer Award' },
@@ -148,23 +149,32 @@ function getAwardContext(selectedAward, scrutinyData, supportingData, formMappin
         { keywords: ['social', 'impact'], target: 'Social Impact Through Technology Award' }
     ];
 
+    const baseUrl = getBaseUrl(req);
+
     awardParts.forEach(part => {
         const match = scrutinyMappings.find(m => m.keywords.some(k => part.includes(k)));
         if (match) {
-            canonicalAward = match.target;
+            canonicalAwards.push(match.target);
             const data = scrutinyData.find(s => s.award === match.target);
             if (data) data.scrutiny_members.forEach(m => scrutinyMembers.add(m));
+            
+            // Collect form link for this award
+            const formFile = formMapping[match.target];
+            if (formFile) {
+                formLinks.push({
+                    award: match.target,
+                    filename: formFile,
+                    url: `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}`
+                });
+            }
         }
     });
-
-    const formFile = formMapping[canonicalAward] || null;
-    const baseUrl = getBaseUrl(req);
-    const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
 
     return {
         scrutinyMembers: scrutinyMembers.size > 0 ? Array.from(scrutinyMembers) : ["Awards Committee"],
         supportingDocuments: docs,
-        formLink: formLink
+        formLinks: formLinks,
+        formLink: formLinks.length > 0 ? formLinks[0].url : null // Backward compatibility
     };
 }
 
@@ -244,14 +254,7 @@ app.post('/api/debug-email', async (req, res) => {
 
     let htmlContent = fs.readFileSync(path.join(__dirname, 'mail_template.html'), 'utf8');
     
-    const downloadSection = nominee.formLink 
-        ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
-            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
-                If the button doesn't work, copy and paste this link: <a href="${nominee.formLink}" style="color: #4f46e5; text-decoration: underline;">${nominee.formLink}</a>
-            </p>
-           </div>`
-        : '';
+    const downloadSection = generateDownloadSection(nominee.formLinks);
 
     htmlContent = htmlContent
         .replace('{{name}}', nominee.name)
@@ -275,6 +278,37 @@ app.post('/api/debug-email', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// Helper function to generate download section HTML for single or multiple forms
+function generateDownloadSection(formLinks) {
+    if (!formLinks || formLinks.length === 0) return '';
+    
+    if (formLinks.length === 1) {
+        // Single form
+        const form = formLinks[0];
+        return `<div style="text-align: center; margin: 30px 0;">
+            <a href="${form.url}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
+            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
+                If the button doesn't work, copy and paste this link: <a href="${form.url}" style="color: #4f46e5; text-decoration: underline;">${form.url}</a>
+            </p>
+           </div>`;
+    } else {
+        // Multiple forms
+        const formButtons = formLinks.map(form => `
+            <div style="margin-bottom: 10px;">
+                <a href="${form.url}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download ${form.award}</a>
+            </div>`).join('');
+        
+        return `<div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 14px; color: #374151; margin-bottom: 15px;"><b>Multiple Nomination Forms Required:</b></p>
+            ${formButtons}
+            <p style="margin-top: 15px; font-size: 12px; color: #6b7280;">
+                <b>Direct Links:</b><br>
+                ${formLinks.map(form => `<a href="${form.url}" style="color: #4f46e5; text-decoration: underline; display: block; margin-top: 5px;">${form.award}: ${form.url}</a>`).join('')}
+            </p>
+           </div>`;
+    }
+}
 
 app.post('/api/send-email', async (req, res) => {
     const { nominee } = req.body;
@@ -306,14 +340,7 @@ app.post('/api/send-email', async (req, res) => {
 
     let htmlContent = fs.readFileSync(path.join(__dirname, 'mail_template.html'), 'utf8');
     
-    const downloadSection = nominee.formLink 
-        ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${nominee.formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
-            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
-                If the button doesn't work, copy and paste this link: <a href="${nominee.formLink}" style="color: #4f46e5; text-decoration: underline;">${nominee.formLink}</a>
-            </p>
-           </div>`
-        : '';
+    const downloadSection = generateDownloadSection(nominee.formLinks);
 
     // Replace placeholders
     htmlContent = htmlContent
@@ -360,7 +387,10 @@ app.post('/api/test-email', async (req, res) => {
     // Map form for test email
     const formFile = formMapping["Best Volunteer/ Organizer/ Team Player Award"];
     const baseUrl = getBaseUrl(req);
-    const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
+    const formLinks = formFile ? [{
+        award: "Best Volunteer/ Organizer/ Team Player Award",
+        url: `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}`
+    }] : [];
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -385,15 +415,7 @@ app.post('/api/test-email', async (req, res) => {
 
     let htmlContent = fs.readFileSync(path.join(__dirname, 'mail_template.html'), 'utf8');
     
-    const downloadSection = formLink 
-        ? `<div style="text-align: center; margin: 30px 0;">
-            <a href="${formLink}" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">Download Nomination Form</a>
-            <p style="margin-top: 10px; font-size: 12px; color: #6b7280;">
-                If the button doesn't work, copy and paste this link: <a href="${formLink}" style="color: #4f46e5; text-decoration: underline;">${formLink}</a>
-            </p>
-           </div>`
-        : '';
-
+    const downloadSection = generateDownloadSection(formLinks);
     htmlContent = htmlContent
         .replace('{{name}}', nominee.name)
         .replace('{{award}}', nominee.award)
