@@ -52,6 +52,17 @@ const SCRUTINY_FILE = path.join(__dirname, 'scrutinity_members.json');
 const SUPPORTING_FILE = path.join(__dirname, 'supporting_documents.json');
 const FORM_MAPPING_FILE = path.join(__dirname, 'award_form_mapping.json');
 
+// Helper function to get correct protocol (handles Vercel load balancer)
+function getBaseUrl(req) {
+    if (!req) return 'http://localhost:3001';
+    
+    // Check for x-forwarded-proto header (set by Vercel/proxies)
+    const proto = req.get('x-forwarded-proto') || req.protocol || 'http';
+    const host = req.get('host');
+    
+    return `${proto}://${host}`;
+}
+
 // Utility to normalize strings for comparison
 const normalize = (str) => str?.toLowerCase().replace(/[^a-z]/g, '') || '';
 
@@ -147,7 +158,7 @@ function getAwardContext(selectedAward, scrutinyData, supportingData, formMappin
     });
 
     const formFile = formMapping[canonicalAward] || null;
-    const baseUrl = req ? `${req.protocol}://${req.get('host')}` : 'http://localhost:3001';
+    const baseUrl = getBaseUrl(req);
     const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
 
     return {
@@ -348,7 +359,7 @@ app.post('/api/test-email', async (req, res) => {
 
     // Map form for test email
     const formFile = formMapping["Best Volunteer/ Organizer/ Team Player Award"];
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = getBaseUrl(req);
     const formLink = formFile ? `${baseUrl}/api/download-form/${encodeURIComponent(formFile)}` : null;
 
     const transporter = nodemailer.createTransport({
