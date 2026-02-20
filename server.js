@@ -198,7 +198,8 @@ app.get('/api/nominees', (req, res) => {
                 regNo: row['Reg No'],
                 scrutinyMembers: context.scrutinyMembers,
                 supportingDocuments: context.supportingDocuments,
-                formLink: context.formLink
+                formLink: context.formLink,
+                formLinks: context.formLinks
             };
         });
 
